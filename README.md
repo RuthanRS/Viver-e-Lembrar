@@ -13,6 +13,11 @@ Projetos como o Viver é Lembrar buscam reforçar a importância de desenvolver 
 
 <u><strong>Este é um projeto pessoal desenvolvido para fins de estudo e exploração de soluções tecnológicas voltadas ao apoio de pessoas com Alzheimer e seus familiares.</strong></u>
 
+- Protótipo no Figma
+- Objetivo do Projeto
+- Funcionalidades
+- Tecnologias Futuras (Kotlin, Android, etc.)
+
 
 **Por Ruthan dos Santos**
   

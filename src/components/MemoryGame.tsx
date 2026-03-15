@@ -7,14 +7,49 @@ interface Card {
   emoji: string;
   isFlipped: boolean;
   isMatched: boolean;
+  name?: string;
+  message?: string;
 }
 
 type Category = 'flores' | 'doces' | 'cores';
 
-const categories = {
-  flores: ['🌸', '🌺', '🌻', '🌷', '🌹', '🌼', '🍀', '🌿'],
-  doces: ['🍰', '🍪', '🍩', '🍫', '🍬', '🍭', '🧁', '🍮'],
-  cores: ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⚪', '⚫'],
+interface CategoryItem {
+  emoji: string;
+  name: string;
+  message: string;
+}
+
+const categories: Record<Category, CategoryItem[]> = {
+  flores: [
+    { emoji: '🌸', name: 'Cerejeira', message: 'Simboliza a beleza da vida' },
+    { emoji: '🌺', name: 'Hibisco', message: 'Traz alegria e cores vibrantes' },
+    { emoji: '🌻', name: 'Girassol', message: 'Sempre busca a luz do sol' },
+    { emoji: '🌷', name: 'Tulipa', message: 'Representa o amor perfeito' },
+    { emoji: '🌹', name: 'Rosa', message: 'A flor do carinho e afeto' },
+    { emoji: '🌼', name: 'Margarida', message: 'Simplicidade e pureza' },
+    { emoji: '🍀', name: 'Trevo', message: 'Traz boa sorte e esperança' },
+    { emoji: '🌿', name: 'Folha', message: 'Símbolo de renovação' },
+  ],
+  doces: [
+    { emoji: '🍰', name: 'Bolo', message: 'Celebra momentos especiais' },
+    { emoji: '🍪', name: 'Biscoito', message: 'Perfeito com um cafezinho' },
+    { emoji: '🍩', name: 'Rosquinha', message: 'Doce e colorida alegria' },
+    { emoji: '🍫', name: 'Chocolate', message: 'Fonte de felicidade' },
+    { emoji: '🍬', name: 'Bala', message: 'Docinho da infância' },
+    { emoji: '🍭', name: 'Pirulito', message: 'Diversão colorida' },
+    { emoji: '🧁', name: 'Cupcake', message: 'Pequeno e delicioso' },
+    { emoji: '🍮', name: 'Pudim', message: 'Sobremesa reconfortante' },
+  ],
+  cores: [
+    { emoji: '🔴', name: 'Vermelho', message: 'Cor da paixão e energia' },
+    { emoji: '🔵', name: 'Azul', message: 'Tranquilidade do céu' },
+    { emoji: '🟢', name: 'Verde', message: 'Natureza e esperança' },
+    { emoji: '🟡', name: 'Amarelo', message: 'Cor da alegria e sol' },
+    { emoji: '🟣', name: 'Roxo', message: 'Nobreza e sabedoria' },
+    { emoji: '🟠', name: 'Laranja', message: 'Energia e entusiasmo' },
+    { emoji: '⚪', name: 'Branco', message: 'Paz e pureza' },
+    { emoji: '⚫', name: 'Preto', message: 'Elegância e mistério' },
+  ],
 };
 
 export function MemoryGame() {
@@ -24,22 +59,26 @@ export function MemoryGame() {
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
+  const [foundItems, setFoundItems] = useState<CategoryItem[]>([]);
 
   const initializeGame = (category: Category) => {
-    const emojis = categories[category];
-    const gameEmojis = emojis.slice(0, 6);
-    const cardPairs = [...gameEmojis, ...gameEmojis];
+    const categoryItems = categories[category];
+    const gameItems = categoryItems.slice(0, 6);
+    const cardPairs = [...gameItems, ...gameItems];
     const shuffled = cardPairs
       .sort(() => Math.random() - 0.5)
-      .map((emoji, index) => ({
+      .map((item, index) => ({
         id: index,
-        emoji,
+        emoji: item.emoji,
+        name: item.name,
+        message: item.message,
         isFlipped: false,
         isMatched: false,
       }));
     setCards(shuffled);
     setFlippedCards([]);
     setMoves(0);
+    setFoundItems([]);
   };
 
   useEffect(() => {
@@ -59,6 +98,13 @@ export function MemoryGame() {
               ? { ...card, isMatched: true }
               : card
           ));
+          // Add to found items
+          const foundItem = categories[selectedCategory].find(
+            item => item.emoji === cards[first].emoji
+          );
+          if (foundItem && !foundItems.some(item => item.emoji === foundItem.emoji)) {
+            setFoundItems(prev => [...prev, foundItem]);
+          }
           setFlippedCards([]);
           setIsChecking(false);
         }, 600);
@@ -76,7 +122,7 @@ export function MemoryGame() {
       }
       setMoves(prev => prev + 1);
     }
-  }, [flippedCards, cards]);
+  }, [flippedCards, cards, selectedCategory, foundItems]);
 
   const handleCardClick = (index: number) => {
     if (
@@ -193,9 +239,32 @@ export function MemoryGame() {
           ))}
         </div>
 
+        {/* Found Items */}
+        {foundItems.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg mb-3 text-gray-700">✨ Itens Encontrados:</h3>
+            <div className="space-y-2">
+              {foundItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl p-4 shadow-md border-2 border-green-200 animate-fadeIn"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">{item.emoji}</span>
+                    <div className="flex-1">
+                      <h4 className="text-lg text-gray-800">{item.name}</h4>
+                      <p className="text-sm text-gray-600">{item.message}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Victory Message */}
         {allMatched && (
-          <div className="bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-2xl p-6 text-center shadow-lg">
+          <div className="bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-2xl p-6 text-center shadow-lg mb-6">
             <p className="text-2xl mb-2">🎉 Parabéns!</p>
             <p className="text-lg mb-4">Você encontrou todos os pares!</p>
             <p className="text-sm">Movimentos: {moves}</p>

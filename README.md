@@ -54,4 +54,4 @@ Protótipo em desenvolvimento.
 **Contribuições**
 Sugestões e melhorias são bem-vindas.
 
-*Por: Ruthan Raniê G. Santos*  
+*Por: Ruthan Raniê G. dos Santos*  

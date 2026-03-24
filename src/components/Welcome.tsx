@@ -24,19 +24,12 @@ export function Welcome() {
             />
           </div>
           
-          {/* Buttons */}
+          {/* Button */}
           <button 
-            onClick={() => navigate('/home')}
+            onClick={() => navigate('/setup')}
             className="w-full bg-blue-400 text-white py-4 rounded-full text-xl mb-4 hover:bg-blue-500 transition-colors"
           >
             Entrar
-          </button>
-          
-          <button 
-            onClick={() => navigate('/home')}
-            className="w-full bg-white text-orange-500 py-4 rounded-full text-xl border-2 border-orange-500 hover:bg-orange-50 transition-colors"
-          >
-            Criar Conta
           </button>
           
           {/* Bottom Decoration */}

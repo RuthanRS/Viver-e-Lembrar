@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Sun, Cloud, Moon, Plus, Trash2, X, Bell, BellOff } from 'lucide-react';
+import { speak } from '../utils/speech';
 
 interface RoutineItem {
   id: string;
@@ -76,10 +77,7 @@ export function DailyRoutine() {
 
           // Voice announcement
           const message = `Atenção! ${item.activity}`;
-          const utterance = new SpeechSynthesisUtterance(message);
-          utterance.lang = 'pt-BR';
-          utterance.rate = 0.9;
-          window.speechSynthesis.speak(utterance);
+          speak(message);
         }
       });
     }, 60000); // Check every minute
@@ -137,9 +135,7 @@ export function DailyRoutine() {
     const message = newValue 
       ? 'Notificações da rotina diária ativadas' 
       : 'Notificações da rotina diária desativadas';
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.lang = 'pt-BR';
-    window.speechSynthesis.speak(utterance);
+    speak(message);
   };
 
   const getPeriodIcon = (period: string) => {

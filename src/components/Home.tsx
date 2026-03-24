@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
-import { Calendar, Users, Image, Bell, Brain, ArrowLeft } from 'lucide-react';
+import { Calendar, Users, Image, Bell, Brain, ArrowLeft, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { getPersonalizedGreeting, speak } from '../utils/speech';
 
 interface Contact {
   id: string;
@@ -13,6 +14,7 @@ interface Contact {
 export function Home() {
   const navigate = useNavigate();
   const [priorityContacts, setPriorityContacts] = useState<Contact[]>([]);
+  const [greeting, setGreeting] = useState('Olá! 👋');
 
   useEffect(() => {
     const saved = localStorage.getItem('alzheimer-contacts');
@@ -21,6 +23,9 @@ export function Home() {
       const priorities = contacts.filter(c => c.isPriority);
       setPriorityContacts(priorities);
     }
+    
+    // Update greeting with user name
+    setGreeting(getPersonalizedGreeting());
   }, []);
 
   const handleEmergency = () => {
@@ -34,11 +39,7 @@ export function Home() {
         message = `Você tem ${priorityContacts.length} contatos de emergência: ${names}. Ligando para ${priorityContacts[0].name}`;
       }
       
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = 'pt-BR';
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
+      speak(message);
 
       // Make the call to the first priority contact
       setTimeout(() => {
@@ -47,10 +48,7 @@ export function Home() {
     } else {
       // If no priority contact, inform user
       const message = 'Você ainda não definiu um contato de emergência. Por favor, vá em Contatos e defina até três contatos prioritários.';
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = 'pt-BR';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
+      speak(message);
       
       alert('Você ainda não definiu um contato de emergência. Por favor, vá em Contatos e defina até 3 contatos prioritários clicando na estrela ⭐');
     }
@@ -99,13 +97,21 @@ export function Home() {
       <div className="max-w-md mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button 
-            onClick={() => navigate('/')}
-            className="mb-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-3xl text-blue-600 mb-2">Olá! 👋</h1>
+          <div className="flex items-center justify-between mb-4">
+            <button 
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <button 
+              onClick={() => navigate('/configuracoes')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <Settings className="w-6 h-6 text-gray-600" />
+            </button>
+          </div>
+          <h1 className="text-3xl text-blue-600 mb-2">{greeting}</h1>
           <p className="text-gray-600">O que você gostaria de fazer hoje?</p>
         </div>
 

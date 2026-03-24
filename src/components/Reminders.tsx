@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Plus, Check, Clock, Trash2, X, Bell, BellOff } from 'lucide-react';
+import { speak } from '../utils/speech';
 
 interface Reminder {
   id: string;
@@ -72,10 +73,7 @@ export function Reminders() {
 
           // Voice announcement
           const message = `Atenção! ${reminder.title}`;
-          const utterance = new SpeechSynthesisUtterance(message);
-          utterance.lang = 'pt-BR';
-          utterance.rate = 0.9;
-          window.speechSynthesis.speak(utterance);
+          speak(message);
         }
       });
     }, 60000); // Check every minute
@@ -140,9 +138,7 @@ export function Reminders() {
     const message = newValue 
       ? 'Notificações de lembretes ativadas' 
       : 'Notificações de lembretes desativadas';
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.lang = 'pt-BR';
-    window.speechSynthesis.speak(utterance);
+    speak(message);
   };
 
   return (

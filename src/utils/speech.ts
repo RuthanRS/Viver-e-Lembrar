@@ -41,15 +41,20 @@ function getBestVoice(voiceType: 'female' | 'male' | 'default'): SpeechSynthesis
       voice.name.toLowerCase().includes('fernanda') ||
       voice.name.toLowerCase().includes('maria') ||
       voice.name.toLowerCase().includes('female') ||
-      voice.name.toLowerCase().includes('mulher')
+      voice.name.toLowerCase().includes('mulher') ||
+      voice.name.toLowerCase().includes('feminina')
     );
     if (femaleVoice) return femaleVoice;
   } else if (voiceType === 'male') {
-    // Look for common male voice names
+    // Look for common male voice names - enhanced detection
     const maleVoice = ptBRVoices.find(voice => 
       voice.name.toLowerCase().includes('felipe') ||
+      voice.name.toLowerCase().includes('daniel') ||
+      voice.name.toLowerCase().includes('ricardo') ||
+      voice.name.toLowerCase().includes('helio') ||
       voice.name.toLowerCase().includes('male') ||
-      voice.name.toLowerCase().includes('homem')
+      voice.name.toLowerCase().includes('homem') ||
+      voice.name.toLowerCase().includes('masculino')
     );
     if (maleVoice) return maleVoice;
   }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Plus, X, Trash2 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { speak } from '../utils/speech';
 
 interface Photo {
   id: string;
@@ -43,6 +44,7 @@ export function PhotoAlbum() {
 
   const addPhoto = () => {
     if (!newPhoto.name || !newPhoto.relationship) {
+      speak('Por favor, preencha pelo menos o nome e o relacionamento');
       alert('Por favor, preencha pelo menos o nome e o relacionamento');
       return;
     }
@@ -57,6 +59,8 @@ export function PhotoAlbum() {
     const updated = [...photos, photo];
     setPhotos(updated);
     localStorage.setItem('alzheimer-photos', JSON.stringify(updated));
+    
+    speak(`Foto de ${newPhoto.name} adicionada ao álbum`);
     
     setNewPhoto({ name: '', relationship: '', url: '' });
     setShowAddModal(false);
@@ -73,9 +77,15 @@ export function PhotoAlbum() {
       const updated = photos.filter(p => p.id !== photoToDelete.id);
       setPhotos(updated);
       localStorage.setItem('alzheimer-photos', JSON.stringify(updated));
+      speak(`Foto de ${photoToDelete.name} removida do álbum`);
       setShowDeleteConfirm(false);
       setPhotoToDelete(null);
     }
+  };
+
+  const viewPhoto = (photo: Photo) => {
+    setSelectedPhoto(photo);
+    speak(`Visualizando foto de ${photo.name}, ${photo.relationship}`);
   };
 
   return (
@@ -99,7 +109,7 @@ export function PhotoAlbum() {
           {photos.map((photo) => (
             <div key={photo.id} className="relative group">
               <button
-                onClick={() => setSelectedPhoto(photo)}
+                onClick={() => viewPhoto(photo)}
                 className="w-full bg-white rounded-2xl p-4 shadow-md hover:shadow-lg transition-all"
               >
                 <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden">

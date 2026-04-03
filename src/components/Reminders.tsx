@@ -89,21 +89,34 @@ export function Reminders() {
   }, []);
 
   const toggleReminder = (id: string) => {
+    const reminder = reminders.find(r => r.id === id);
     const updated = reminders.map(r => 
       r.id === id ? { ...r, completed: !r.completed } : r
     );
     setReminders(updated);
     localStorage.setItem('alzheimer-reminders', JSON.stringify(updated));
+    
+    if (reminder) {
+      const message = reminder.completed 
+        ? `Lembrete ${reminder.title} marcado como não concluído`
+        : `Lembrete ${reminder.title} marcado como concluído`;
+      speak(message);
+    }
   };
 
   const deleteReminder = (id: string) => {
+    const reminder = reminders.find(r => r.id === id);
     const updated = reminders.filter(r => r.id !== id);
     setReminders(updated);
     localStorage.setItem('alzheimer-reminders', JSON.stringify(updated));
+    if (reminder) {
+      speak(`Lembrete ${reminder.title} removido`);
+    }
   };
 
   const addReminder = () => {
     if (!newReminder.title || !newReminder.time) {
+      speak('Por favor, preencha todos os campos');
       alert('Por favor, preencha todos os campos');
       return;
     }
@@ -119,6 +132,8 @@ export function Reminders() {
     const updated = [...reminders, reminder].sort((a, b) => a.time.localeCompare(b.time));
     setReminders(updated);
     localStorage.setItem('alzheimer-reminders', JSON.stringify(updated));
+    
+    speak(`Lembrete ${newReminder.title} adicionado para às ${newReminder.time}`);
     
     setNewReminder({ title: '', time: '', type: 'task' });
     setShowModal(false);

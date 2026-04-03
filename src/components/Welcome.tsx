@@ -1,8 +1,16 @@
 import { useNavigate } from 'react-router';
 import welcomeImg from 'figma:asset/f6c240a6ae1c2bcc591c1638da9e9ebb82ddcccc.png';
+import { speak } from '../utils/speech';
 
 export function Welcome() {
   const navigate = useNavigate();
+
+  const handleEnter = () => {
+    speak('Bem-vindo ao Viver é Lembrar! Vamos começar configurando o aplicativo para você.');
+    setTimeout(() => {
+      navigate('/setup');
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -26,7 +34,7 @@ export function Welcome() {
           
           {/* Button */}
           <button 
-            onClick={() => navigate('/setup')}
+            onClick={handleEnter}
             className="w-full bg-blue-400 text-white py-4 rounded-full text-xl mb-4 hover:bg-blue-500 transition-colors"
           >
             Entrar

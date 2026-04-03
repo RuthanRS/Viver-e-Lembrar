@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
+import { speak } from '../utils/speech';
 
 interface Card {
   id: number;
@@ -79,10 +80,30 @@ export function MemoryGame() {
     setFlippedCards([]);
     setMoves(0);
     setFoundItems([]);
+    speak(`Novo jogo iniciado com o tema ${getCategoryName(category)}`);
+  };
+  
+  const getCategoryName = (category: Category) => {
+    switch(category) {
+      case 'flores': return 'flores';
+      case 'doces': return 'doces';
+      case 'cores': return 'cores';
+    }
+  };
+
+  const handleCategoryChange = (category: Category) => {
+    setSelectedCategory(category);
+    speak(`Tema alterado para ${getCategoryName(category)}`);
   };
 
   useEffect(() => {
     initializeGame(selectedCategory);
+  }, []);
+  
+  useEffect(() => {
+    if (selectedCategory) {
+      initializeGame(selectedCategory);
+    }
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -104,6 +125,7 @@ export function MemoryGame() {
           );
           if (foundItem && !foundItems.some(item => item.emoji === foundItem.emoji)) {
             setFoundItems(prev => [...prev, foundItem]);
+            speak(`Parabéns! Você encontrou ${foundItem.name}. ${foundItem.message}`);
           }
           setFlippedCards([]);
           setIsChecking(false);
@@ -141,6 +163,13 @@ export function MemoryGame() {
   };
 
   const allMatched = cards.length > 0 && cards.every(card => card.isMatched);
+  
+  // Add voice feedback when game is completed
+  useEffect(() => {
+    if (allMatched && cards.length > 0) {
+      speak(`Parabéns! Você completou o jogo da memória com ${moves} movimentos. Você é incrível!`);
+    }
+  }, [allMatched, moves, cards.length]);
 
   const getCategoryColor = (category: Category) => {
     switch (category) {
@@ -182,7 +211,7 @@ export function MemoryGame() {
           <p className="text-sm text-gray-600 mb-3">Escolha um tema:</p>
           <div className="grid grid-cols-3 gap-2">
             <button
-              onClick={() => setSelectedCategory('flores')}
+              onClick={() => handleCategoryChange('flores')}
               className={`py-3 px-4 rounded-xl text-sm transition-all ${
                 selectedCategory === 'flores'
                   ? 'bg-pink-500 text-white shadow-lg scale-105'
@@ -192,7 +221,7 @@ export function MemoryGame() {
               🌸 Flores
             </button>
             <button
-              onClick={() => setSelectedCategory('doces')}
+              onClick={() => handleCategoryChange('doces')}
               className={`py-3 px-4 rounded-xl text-sm transition-all ${
                 selectedCategory === 'doces'
                   ? 'bg-orange-500 text-white shadow-lg scale-105'
@@ -202,7 +231,7 @@ export function MemoryGame() {
               🍰 Doces
             </button>
             <button
-              onClick={() => setSelectedCategory('cores')}
+              onClick={() => handleCategoryChange('cores')}
               className={`py-3 px-4 rounded-xl text-sm transition-all ${
                 selectedCategory === 'cores'
                   ? 'bg-blue-500 text-white shadow-lg scale-105'

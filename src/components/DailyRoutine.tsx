@@ -93,15 +93,20 @@ export function DailyRoutine() {
   }, []);
 
   const deleteRoutineItem = (id: string) => {
+    const item = routineItems.find(r => r.id === id);
     if (confirm('Tem certeza que deseja remover esta atividade?')) {
       const updated = routineItems.filter(r => r.id !== id);
       setRoutineItems(updated);
       localStorage.setItem('alzheimer-routine', JSON.stringify(updated));
+      if (item) {
+        speak(`Atividade ${item.activity} removida da rotina`);
+      }
     }
   };
 
   const addRoutineItem = () => {
     if (!newRoutine.time || !newRoutine.activity) {
+      speak('Por favor, preencha todos os campos');
       alert('Por favor, preencha todos os campos');
       return;
     }
@@ -116,6 +121,8 @@ export function DailyRoutine() {
     const updated = [...routineItems, item].sort((a, b) => a.time.localeCompare(b.time));
     setRoutineItems(updated);
     localStorage.setItem('alzheimer-routine', JSON.stringify(updated));
+    
+    speak(`Atividade ${newRoutine.activity} adicionada à rotina para às ${newRoutine.time}`);
     
     setNewRoutine({ time: '', activity: '', period: 'morning' });
     setShowModal(false);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Phone, Plus, Trash2, X, Star } from 'lucide-react';
+import { speak } from '../utils/speech';
 
 interface Contact {
   id: string;
@@ -40,15 +41,22 @@ export function Contacts() {
     }
   }, []);
 
-  const makeCall = (phone: string) => {
-    window.location.href = `tel:${phone}`;
+  const makeCall = (phone: string, name: string) => {
+    speak(`Ligando para ${name}`);
+    setTimeout(() => {
+      window.location.href = `tel:${phone}`;
+    }, 1000);
   };
 
   const deleteContact = (id: string) => {
+    const contact = contacts.find(c => c.id === id);
     if (confirm('Tem certeza que deseja remover este contato?')) {
       const updated = contacts.filter(c => c.id !== id);
       setContacts(updated);
       localStorage.setItem('alzheimer-contacts', JSON.stringify(updated));
+      if (contact) {
+        speak(`Contato ${contact.name} removido`);
+      }
     }
   };
 
@@ -65,6 +73,7 @@ export function Contacts() {
 
     // If trying to add and already have 3 priority contacts
     if (!isCurrentlyPriority && priorityContacts.length >= 3) {
+      speak('Você já tem três contatos de emergência. Para adicionar um novo, remova um dos contatos atuais primeiro.');
       alert('Você já definiu 3 contatos de emergência. Para adicionar um novo, remova um dos contatos atuais primeiro.');
       setShowPriorityConfirm(false);
       setPendingPriorityContact(null);
@@ -79,12 +88,19 @@ export function Contacts() {
 
     setContacts(updated);
     localStorage.setItem('alzheimer-contacts', JSON.stringify(updated));
+    
+    const message = isCurrentlyPriority 
+      ? `${pendingPriorityContact.name} removido dos contatos de emergência`
+      : `${pendingPriorityContact.name} adicionado como contato de emergência`;
+    speak(message);
+    
     setShowPriorityConfirm(false);
     setPendingPriorityContact(null);
   };
 
   const addContact = () => {
     if (!newContact.name || !newContact.relationship || !newContact.phone) {
+      speak('Por favor, preencha todos os campos');
       alert('Por favor, preencha todos os campos');
       return;
     }
@@ -99,6 +115,8 @@ export function Contacts() {
     const updated = [...contacts, contact];
     setContacts(updated);
     localStorage.setItem('alzheimer-contacts', JSON.stringify(updated));
+    
+    speak(`Contato ${newContact.name} adicionado com sucesso`);
     
     setNewContact({ name: '', relationship: '', phone: '' });
     setShowModal(false);
@@ -170,7 +188,7 @@ export function Contacts() {
                     <Star className={`w-5 h-5 ${contact.isPriority ? 'fill-white' : ''}`} />
                   </button>
                   <button
-                    onClick={() => makeCall(contact.phone)}
+                    onClick={() => makeCall(contact.phone, contact.name)}
                     className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors shadow-lg"
                   >
                     <Phone className="w-5 h-5" />

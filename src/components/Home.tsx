@@ -92,6 +92,13 @@ export function Home() {
     },
   ];
 
+  const handleFeatureClick = (title: string, path: string) => {
+    speak(`Abrindo ${title}`);
+    setTimeout(() => {
+      navigate(path);
+    }, 500);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="max-w-md mx-auto px-6 py-8">
@@ -120,7 +127,7 @@ export function Home() {
           {features.map((feature, index) => (
             <button
               key={index}
-              onClick={() => navigate(feature.path)}
+              onClick={() => handleFeatureClick(feature.title, feature.path)}
               className="w-full bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition-all flex items-center gap-4 text-left"
             >
               <div className={`p-4 rounded-xl ${feature.color}`}>

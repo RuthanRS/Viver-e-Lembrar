@@ -1,6 +1,7 @@
 export interface VoiceSettings {
   userName: string;
   voiceType: 'female' | 'male' | 'default';
+  ttsEnabled: boolean;
 }
 
 // Get saved voice settings
@@ -11,7 +12,8 @@ export function getVoiceSettings(): VoiceSettings {
   }
   return {
     userName: '',
-    voiceType: 'female'
+    voiceType: 'female',
+    ttsEnabled: true
   };
 }
 
@@ -66,6 +68,12 @@ function getBestVoice(voiceType: 'female' | 'male' | 'default'): SpeechSynthesis
 // Speak text with configured voice settings
 export function speak(text: string, customSettings?: { rate?: number; pitch?: number }) {
   const settings = getVoiceSettings();
+  
+  // Check if TTS is enabled
+  if (!settings.ttsEnabled) {
+    return; // Don't speak if TTS is disabled
+  }
+  
   const utterance = new SpeechSynthesisUtterance(text);
   
   utterance.lang = 'pt-BR';

@@ -21,7 +21,10 @@ export function Welcome() {
         <div className="p-8 text-center">
           {/* Header */}
           <h1 className="text-4xl text-blue-400 mb-2">Viver é Lembrar</h1>
-          <p className="text-gray-600 mb-8">Cuidando das memórias com carinho</p>
+          <p className="text-gray-600 mb-2">Cuidando das memórias com carinho</p>
+          <p className="text-sm text-gray-500 italic mb-8">
+            "Sua memória pode partir, mas sempre estaremos aqui para lembrá-los."
+          </p>
           
           {/* Main Image */}
           <div className="mb-8">

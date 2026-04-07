@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, User, Volume2, Check } from 'lucide-react';
+import { ArrowLeft, User, Volume2, Check, VolumeX } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getVoiceSettings, saveVoiceSettings, speak, type VoiceSettings } from '../utils/speech';
 
@@ -7,9 +7,11 @@ export function Settings() {
   const navigate = useNavigate();
   const [settings, setSettings] = useState<VoiceSettings>({
     userName: '',
-    voiceType: 'female'
+    voiceType: 'female',
+    ttsEnabled: true
   });
   const [saved, setSaved] = useState(false);
+  const [showTtsConfirm, setShowTtsConfirm] = useState(false);
 
   useEffect(() => {
     const loadedSettings = getVoiceSettings();
@@ -29,10 +31,33 @@ export function Settings() {
   };
 
   const testVoice = () => {
+    if (!settings.ttsEnabled) {
+      alert('O auxílio de voz está desativado. Ative-o para testar.');
+      return;
+    }
     const message = settings.userName 
       ? `Olá ${settings.userName}, esta é a voz ${settings.voiceType === 'female' ? 'feminina' : settings.voiceType === 'male' ? 'masculina' : 'padrão'} que será usada no aplicativo.`
       : `Esta é a voz ${settings.voiceType === 'female' ? 'feminina' : settings.voiceType === 'male' ? 'masculina' : 'padrão'} que será usada no aplicativo.`;
     speak(message);
+  };
+
+  const handleTtsToggle = () => {
+    setShowTtsConfirm(true);
+  };
+
+  const confirmTtsToggle = () => {
+    const newTtsValue = !settings.ttsEnabled;
+    setSettings({ ...settings, ttsEnabled: newTtsValue });
+    setShowTtsConfirm(false);
+    
+    // Only speak if enabling TTS
+    if (newTtsValue) {
+      // Temporarily enable to speak confirmation
+      const tempSettings = { ...settings, ttsEnabled: true };
+      saveVoiceSettings(tempSettings);
+      speak('Auxílio de voz ativado');
+      setSettings(tempSettings);
+    }
   };
 
   return (
@@ -148,6 +173,40 @@ export function Settings() {
             </button>
           </div>
 
+          {/* TTS Toggle Section */}
+          <div className="bg-white rounded-2xl p-6 shadow-md">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-3 rounded-xl ${settings.ttsEnabled ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-600'}`}>
+                {settings.ttsEnabled ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+              </div>
+              <h2 className="text-xl">Auxílio de Voz</h2>
+            </div>
+            <p className="text-gray-600 text-sm mb-4">
+              Ative ou desative todas as orientações por voz do aplicativo
+            </p>
+            
+            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+              <div>
+                <div className="font-medium">Status do Auxílio de Voz</div>
+                <div className="text-sm text-gray-600">
+                  {settings.ttsEnabled ? '🔊 Ativado' : '🔇 Desativado'}
+                </div>
+              </div>
+              <button
+                onClick={handleTtsToggle}
+                className={`relative w-16 h-8 rounded-full transition-colors ${
+                  settings.ttsEnabled ? 'bg-purple-500' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                    settings.ttsEnabled ? 'transform translate-x-8' : ''
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
           {/* Save Button */}
           <button
             onClick={handleSave}
@@ -160,6 +219,51 @@ export function Settings() {
             {saved ? '✓ Salvo!' : '💾 Salvar Configurações'}
           </button>
         </div>
+
+        {/* TTS Confirmation Modal */}
+        {showTtsConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-3xl p-8 max-w-sm w-full">
+              <div className="text-center mb-6">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                  settings.ttsEnabled ? 'bg-red-100' : 'bg-green-100'
+                }`}>
+                  {settings.ttsEnabled ? (
+                    <VolumeX className="w-8 h-8 text-red-500" />
+                  ) : (
+                    <Volume2 className="w-8 h-8 text-green-500" />
+                  )}
+                </div>
+                <h2 className="text-2xl mb-2">Tem certeza?</h2>
+                <p className="text-gray-600">
+                  {settings.ttsEnabled 
+                    ? 'Deseja desativar o auxílio de voz? Você não ouvirá mais as orientações faladas.'
+                    : 'Deseja ativar o auxílio de voz? O aplicativo falará as orientações para você.'
+                  }
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={confirmTtsToggle}
+                  className={`w-full text-white py-3 rounded-full text-lg transition-colors ${
+                    settings.ttsEnabled 
+                      ? 'bg-red-500 hover:bg-red-600' 
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  Sim, Confirmar
+                </button>
+                <button
+                  onClick={() => setShowTtsConfirm(false)}
+                  className="w-full bg-gray-200 text-gray-700 py-3 rounded-full text-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

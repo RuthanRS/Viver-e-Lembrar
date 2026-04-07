@@ -8,7 +8,8 @@ export function Setup() {
   const [step, setStep] = useState(1);
   const [settings, setSettings] = useState<VoiceSettings>({
     userName: '',
-    voiceType: 'female'
+    voiceType: 'female',
+    ttsEnabled: true
   });
 
   useEffect(() => {

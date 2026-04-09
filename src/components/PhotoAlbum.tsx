@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Plus, X, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, X, Trash2, Mic, Square, Play, Pause, Upload, Image } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { speak } from '../utils/speech';
 
@@ -9,6 +9,7 @@ interface Photo {
   url: string;
   name: string;
   relationship: string;
+  audioUrl?: string;
 }
 
 export function PhotoAlbum() {
@@ -21,8 +22,19 @@ export function PhotoAlbum() {
   const [newPhoto, setNewPhoto] = useState({
     name: '',
     relationship: '',
-    url: ''
+    url: '',
+    audioUrl: ''
   });
+  
+  // Audio recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState<string>('');
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Load from localStorage
@@ -53,7 +65,8 @@ export function PhotoAlbum() {
       id: Date.now().toString(),
       name: newPhoto.name,
       relationship: newPhoto.relationship,
-      url: newPhoto.url
+      url: newPhoto.url,
+      audioUrl: newPhoto.audioUrl
     };
 
     const updated = [...photos, photo];
@@ -62,7 +75,7 @@ export function PhotoAlbum() {
     
     speak(`Foto de ${newPhoto.name} adicionada ao álbum`);
     
-    setNewPhoto({ name: '', relationship: '', url: '' });
+    setNewPhoto({ name: '', relationship: '', url: '', audioUrl: '' });
     setShowAddModal(false);
   };
 
@@ -86,6 +99,119 @@ export function PhotoAlbum() {
   const viewPhoto = (photo: Photo) => {
     setSelectedPhoto(photo);
     speak(`Visualizando foto de ${photo.name}, ${photo.relationship}`);
+  };
+
+  const playAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const pauseAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setRecordedAudioUrl(audioUrl);
+        setNewPhoto({ ...newPhoto, audioUrl: audioUrl });
+        audioChunksRef.current = [];
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      speak('Gravação iniciada');
+
+      // Start recording time
+      const startTime = Date.now();
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(Date.now() - startTime);
+      }, 1000);
+    } catch (err) {
+      console.error('Erro ao iniciar gravação:', err);
+      
+      let errorMessage = 'Não foi possível acessar o microfone. ';
+      
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          errorMessage += 'Por favor, permita o acesso ao microfone nas configurações do seu navegador.';
+        } else if (err.name === 'NotFoundError') {
+          errorMessage += 'Nenhum microfone foi encontrado no seu dispositivo.';
+        } else if (err.name === 'NotReadableError') {
+          errorMessage += 'O microfone está sendo usado por outro aplicativo.';
+        } else {
+          errorMessage += 'Erro: ' + err.message;
+        }
+      }
+      
+      alert(errorMessage);
+      speak('Erro ao acessar o microfone');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+
+      // Stop recording time
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione apenas arquivos de imagem');
+      speak('Tipo de arquivo inválido. Selecione uma imagem');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('A imagem é muito grande. Por favor, selecione uma imagem menor que 5MB');
+      speak('Imagem muito grande. Selecione uma imagem menor');
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      setNewPhoto({ ...newPhoto, url: base64 });
+      speak('Foto carregada com sucesso');
+    };
+    reader.onerror = () => {
+      alert('Erro ao carregar a imagem');
+      speak('Erro ao carregar a imagem');
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -112,7 +238,7 @@ export function PhotoAlbum() {
                 onClick={() => viewPhoto(photo)}
                 className="w-full bg-white rounded-2xl p-4 shadow-md hover:shadow-lg transition-all"
               >
-                <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
+                <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden relative">
                   {photo.url ? (
                     <ImageWithFallback 
                       src={photo.url} 
@@ -121,6 +247,12 @@ export function PhotoAlbum() {
                     />
                   ) : (
                     <span className="text-4xl">👤</span>
+                  )}
+                  {/* Audio indicator */}
+                  {photo.audioUrl && (
+                    <div className="absolute bottom-2 right-2 bg-purple-500 text-white rounded-full p-1.5 shadow-md">
+                      <Mic className="w-3 h-3" />
+                    </div>
                   )}
                 </div>
                 <h3 className="text-lg mb-1">{photo.name}</h3>
@@ -176,6 +308,37 @@ export function PhotoAlbum() {
               <h2 className="text-2xl mb-2 text-center">{selectedPhoto.name}</h2>
               <p className="text-gray-600 text-center mb-6">{selectedPhoto.relationship}</p>
               
+              {/* Audio Player */}
+              {selectedPhoto.audioUrl && (
+                <div className="mb-4 bg-purple-50 rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-5 h-5 text-purple-600" />
+                      <span className="text-sm text-purple-700">Áudio Gravado</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (audioRef.current) {
+                          if (isPlaying) {
+                            pauseAudio();
+                          } else {
+                            playAudio();
+                          }
+                        }
+                      }}
+                      className="p-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
+                    >
+                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <audio 
+                    ref={audioRef} 
+                    src={selectedPhoto.audioUrl}
+                    onEnded={() => setIsPlaying(false)}
+                  />
+                </div>
+              )}
+              
               <button
                 onClick={() => confirmDelete(selectedPhoto)}
                 className="w-full bg-red-500 text-white py-3 rounded-full hover:bg-red-600 transition-colors"
@@ -224,15 +387,101 @@ export function PhotoAlbum() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-600 mb-2">URL da Foto (opcional)</label>
-                  <input
-                    type="text"
-                    value={newPhoto.url}
-                    onChange={(e) => setNewPhoto({ ...newPhoto, url: e.target.value })}
-                    placeholder="Cole o link da imagem aqui"
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 outline-none text-lg"
-                  />
-                  <p className="text-xs text-gray-500 mt-2">Se deixar em branco, será usado um avatar padrão</p>
+                  <label className="block text-sm text-gray-600 mb-2">Carregar Imagem (opcional)</label>
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    {newPhoto.url && !newPhoto.url.startsWith('http') ? (
+                      <div className="mb-3">
+                        <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl overflow-hidden mb-2">
+                          <img 
+                            src={newPhoto.url} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewPhoto({ ...newPhoto, url: '' })}
+                          className="w-full text-sm text-red-500 hover:text-red-700"
+                        >
+                          Remover imagem
+                        </button>
+                      </div>
+                    ) : null}
+                    <label 
+                      htmlFor="imageUpload"
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-colors bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span className="text-sm">
+                        {newPhoto.url && !newPhoto.url.startsWith('http') ? 'Trocar Imagem' : 'Carregar do Dispositivo'}
+                      </span>
+                    </label>
+                    <input
+                      type="file"
+                      id="imageUpload"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      📸 Selecione uma foto do seu dispositivo (máx. 5MB)
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2">Gravar Áudio (opcional)</label>
+                  <div className="bg-purple-50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        type="button"
+                        onClick={isRecording ? stopRecording : startRecording}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                          isRecording 
+                            ? 'bg-red-500 text-white hover:bg-red-600' 
+                            : 'bg-purple-500 text-white hover:bg-purple-600'
+                        }`}
+                      >
+                        {isRecording ? (
+                          <>
+                            <Square className="w-4 h-4" />
+                            <span className="text-sm">Parar</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-4 h-4" />
+                            <span className="text-sm">Gravar</span>
+                          </>
+                        )}
+                      </button>
+                      {isRecording && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm text-gray-600">Gravando...</span>
+                        </div>
+                      )}
+                    </div>
+                    {recordedAudioUrl && (
+                      <div className="mt-3 pt-3 border-t border-purple-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-purple-700">✓ Áudio gravado</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRecordedAudioUrl('');
+                              setNewPhoto({ ...newPhoto, audioUrl: '' });
+                            }}
+                            className="text-xs text-red-500 hover:text-red-700"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-2">
+                      💡 Permita o acesso ao microfone quando solicitado
+                    </p>
+                  </div>
                 </div>
 
                 <button

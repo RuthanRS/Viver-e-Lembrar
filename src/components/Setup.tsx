@@ -36,7 +36,11 @@ export function Setup() {
   };
 
   const testVoice = () => {
-    const message = `Olá ${settings.userName}, esta é a voz ${settings.voiceType === 'female' ? 'feminina' : settings.voiceType === 'male' ? 'masculina' : 'padrão'} que será usada no aplicativo.`;
+    if (!settings.ttsEnabled) {
+      alert('Você escolheu "Sem Voz". Nenhum áudio será reproduzido.');
+      return;
+    }
+    const message = `Olá ${settings.userName}, esta é a voz ${settings.voiceType === 'female' ? 'feminina' : 'masculina'} que será usada no aplicativo.`;
     speak(message);
   };
 
@@ -112,9 +116,9 @@ export function Setup() {
             <div className="bg-white rounded-3xl p-6 shadow-lg space-y-4">
               {/* Female Voice */}
               <button
-                onClick={() => setSettings({ ...settings, voiceType: 'female' })}
+                onClick={() => setSettings({ ...settings, voiceType: 'female', ttsEnabled: true })}
                 className={`w-full p-5 rounded-2xl border-2 transition-all flex items-center justify-between ${
-                  settings.voiceType === 'female'
+                  settings.voiceType === 'female' && settings.ttsEnabled
                     ? 'border-purple-400 bg-purple-50 shadow-md'
                     : 'border-gray-200 hover:border-purple-200'
                 }`}
@@ -123,16 +127,16 @@ export function Setup() {
                   <div className="text-xl mb-1">🎀 Voz Feminina</div>
                   <div className="text-sm text-gray-600">Voz suave e acolhedora</div>
                 </div>
-                {settings.voiceType === 'female' && (
+                {settings.voiceType === 'female' && settings.ttsEnabled && (
                   <Check className="w-7 h-7 text-purple-600" />
                 )}
               </button>
 
               {/* Male Voice */}
               <button
-                onClick={() => setSettings({ ...settings, voiceType: 'male' })}
+                onClick={() => setSettings({ ...settings, voiceType: 'male', ttsEnabled: true })}
                 className={`w-full p-5 rounded-2xl border-2 transition-all flex items-center justify-between ${
-                  settings.voiceType === 'male'
+                  settings.voiceType === 'male' && settings.ttsEnabled
                     ? 'border-purple-400 bg-purple-50 shadow-md'
                     : 'border-gray-200 hover:border-purple-200'
                 }`}
@@ -141,25 +145,25 @@ export function Setup() {
                   <div className="text-xl mb-1">👔 Voz Masculina</div>
                   <div className="text-sm text-gray-600">Voz clara e firme</div>
                 </div>
-                {settings.voiceType === 'male' && (
+                {settings.voiceType === 'male' && settings.ttsEnabled && (
                   <Check className="w-7 h-7 text-purple-600" />
                 )}
               </button>
 
-              {/* Default Voice */}
+              {/* No Voice */}
               <button
-                onClick={() => setSettings({ ...settings, voiceType: 'default' })}
+                onClick={() => setSettings({ ...settings, ttsEnabled: false })}
                 className={`w-full p-5 rounded-2xl border-2 transition-all flex items-center justify-between ${
-                  settings.voiceType === 'default'
+                  !settings.ttsEnabled
                     ? 'border-purple-400 bg-purple-50 shadow-md'
                     : 'border-gray-200 hover:border-purple-200'
                 }`}
               >
                 <div className="text-left">
-                  <div className="text-xl mb-1">🔊 Voz Padrão</div>
-                  <div className="text-sm text-gray-600">Voz padrão do sistema</div>
+                  <div className="text-xl mb-1">🔇 Sem Voz</div>
+                  <div className="text-sm text-gray-600">Usar apenas visual, sem áudio</div>
                 </div>
-                {settings.voiceType === 'default' && (
+                {!settings.ttsEnabled && (
                   <Check className="w-7 h-7 text-purple-600" />
                 )}
               </button>

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { User, Volume2, Check, ArrowRight } from 'lucide-react';
-import { saveVoiceSettings, speak, type VoiceSettings } from '../utils/speech';
+import { saveVoiceSettings, speak, speakWithSettings, type VoiceSettings } from '../utils/speech';
 
 export function Setup() {
   const navigate = useNavigate();
@@ -40,8 +40,9 @@ export function Setup() {
       alert('Você escolheu "Sem Voz". Nenhum áudio será reproduzido.');
       return;
     }
+    
     const message = `Olá ${settings.userName}, esta é a voz ${settings.voiceType === 'female' ? 'feminina' : 'masculina'} que será usada no aplicativo.`;
-    speak(message);
+    speakWithSettings(message, settings.voiceType, settings.ttsEnabled);
   };
 
   return (

@@ -35,9 +35,9 @@ export function Settings() {
       alert('O auxílio de voz está desativado. Ative-o para testar.');
       return;
     }
-    const message = settings.userName 
-      ? `Olá ${settings.userName}, esta é a voz ${settings.voiceType === 'female' ? 'feminina' : settings.voiceType === 'male' ? 'masculina' : 'padrão'} que será usada no aplicativo.`
-      : `Esta é a voz ${settings.voiceType === 'female' ? 'feminina' : settings.voiceType === 'male' ? 'masculina' : 'padrão'} que será usada no aplicativo.`;
+    const message = settings.userName
+      ? `Olá ${settings.userName}, esta é a voz ${settings.voiceType === 'female' ? 'feminina' : 'masculina'} que será usada no aplicativo.`
+      : `Esta é a voz ${settings.voiceType === 'female' ? 'feminina' : 'masculina'} que será usada no aplicativo.`;
     speak(message);
   };
 
@@ -141,24 +141,6 @@ export function Settings() {
                   <div className="text-sm text-gray-600">Voz clara e firme</div>
                 </div>
                 {settings.voiceType === 'male' && (
-                  <Check className="w-6 h-6 text-purple-600" />
-                )}
-              </button>
-
-              {/* Default Voice */}
-              <button
-                onClick={() => setSettings({ ...settings, voiceType: 'default' })}
-                className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
-                  settings.voiceType === 'default'
-                    ? 'border-purple-400 bg-purple-50'
-                    : 'border-gray-200 hover:border-purple-200'
-                }`}
-              >
-                <div className="text-left">
-                  <div className="font-medium">🔊 Voz Padrão</div>
-                  <div className="text-sm text-gray-600">Voz padrão do sistema</div>
-                </div>
-                {settings.voiceType === 'default' && (
                   <Check className="w-6 h-6 text-purple-600" />
                 )}
               </button>

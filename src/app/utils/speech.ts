@@ -1,6 +1,6 @@
 export interface VoiceSettings {
   userName: string;
-  voiceType: 'female' | 'male' | 'default';
+  voiceType: 'female' | 'male';
   ttsEnabled: boolean;
 }
 
@@ -23,7 +23,7 @@ export function saveVoiceSettings(settings: VoiceSettings) {
 }
 
 // Get the best available voice based on user preference
-function getBestVoice(voiceType: 'female' | 'male' | 'default'): SpeechSynthesisVoice | null {
+function getBestVoice(voiceType: 'female' | 'male'): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
   
   // Debug: Log available voices
@@ -108,7 +108,7 @@ export function speak(text: string, customSettings?: { rate?: number; pitch?: nu
   if (customSettings?.pitch !== undefined) {
     utterance.pitch = customSettings.pitch;
   } else {
-    utterance.pitch = settings.voiceType === 'female' ? 1.2 : settings.voiceType === 'male' ? 0.9 : 1;
+    utterance.pitch = settings.voiceType === 'female' ? 1.2 : 0.9;
   }
   
   // Wait for voices to load
@@ -133,16 +133,16 @@ export function speak(text: string, customSettings?: { rate?: number; pitch?: nu
 }
 
 // Speak with temporary settings (useful for testing)
-export function speakWithSettings(text: string, voiceType: 'female' | 'male' | 'default', ttsEnabled: boolean) {
+export function speakWithSettings(text: string, voiceType: 'female' | 'male', ttsEnabled: boolean) {
   if (!ttsEnabled) {
     return;
   }
-  
+
   const utterance = new SpeechSynthesisUtterance(text);
-  
+
   utterance.lang = 'pt-BR';
   utterance.rate = 0.85;
-  utterance.pitch = voiceType === 'female' ? 1.2 : voiceType === 'male' ? 0.9 : 1;
+  utterance.pitch = voiceType === 'female' ? 1.2 : 0.9;
   
   // Wait for voices to load
   const setVoice = () => {

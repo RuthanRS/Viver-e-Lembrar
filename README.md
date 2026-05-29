@@ -1,5 +1,5 @@
 Viver é Lembrar
-This is a code bundle for Viver é Lembrar. The original project is available at https://www.figma.com/design/GIOZkMnJujNVuYGieczeUg/Viver-%C3%A9-Lembrar.
+Site do projeto: https://viver-e-lembrar.figma.site/
 ____________________________________________________________________________________________________________________________________________
 🧠 Viver é Lembrar
 
